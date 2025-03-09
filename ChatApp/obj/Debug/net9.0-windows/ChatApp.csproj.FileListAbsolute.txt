@@ -17,3 +17,4 @@ C:\daniyal\ChatProject\ChatApp\obj\Debug\net9.0-windows\refint\ChatApp.dll
 C:\daniyal\ChatProject\ChatApp\obj\Debug\net9.0-windows\ChatApp.pdb
 C:\daniyal\ChatProject\ChatApp\obj\Debug\net9.0-windows\ChatApp.genruntimeconfig.cache
 C:\daniyal\ChatProject\ChatApp\obj\Debug\net9.0-windows\ref\ChatApp.dll
+C:\daniyal\ChatProject\ChatApp\obj\Debug\net9.0-windows\ChatApp.sourcelink.json
