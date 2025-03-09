@@ -1,10 +1,11 @@
-﻿
-using System;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace ChatApp
 {
@@ -15,11 +16,19 @@ namespace ChatApp
         private StreamReader? reader;
         private StreamWriter? writer;
         private Thread? listenThread;
+        public ObservableCollection<Message> Messages { get; set; }
+        public ObservableCollection<Contact> Contacts { get; set; }
+        public Contact? SelectedContact { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
+            Messages = new ObservableCollection<Message>();
+            Contacts = new ObservableCollection<Contact>();
+            ChatMessages.ItemsSource = Messages;
+            ContactsList.ItemsSource = Contacts;
             ConnectToServer();
+            InitializePlaceholder();
         }
 
         private void ConnectToServer()
@@ -51,10 +60,18 @@ namespace ChatApp
                     string? message = reader.ReadLine();
                     if (message == null) break;
 
-                    Dispatcher.Invoke(() => ChatMessages.Items.Add("Friend: " + message));
+                    Dispatcher.Invoke(() => Messages.Add(new Message
+                    {
+                        Sender = "Friend",
+                        Content = message,
+                        Timestamp = DateTime.Now // Correctly assign DateTime value
+                    }));
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() => MessageBox.Show("Error receiving message: " + ex.Message));
+            }
         }
 
         private void SendMessage_Click(object sender, RoutedEventArgs e)
@@ -63,9 +80,68 @@ namespace ChatApp
             if (!string.IsNullOrEmpty(message) && writer != null)
             {
                 writer.WriteLine(message);
-                ChatMessages.Items.Add("Me: " + message);
+                Messages.Add(new Message
+                {
+                    Sender = "Me",
+                    Content = message,
+                    Timestamp = DateTime.Now // Correctly assign DateTime value
+                });
                 MessageInput.Clear();
+                RestorePlaceholder();
             }
         }
+
+        private void InitializePlaceholder()
+        {
+            MessageInput.Text = "Type a message...";
+            MessageInput.Foreground = new SolidColorBrush(Colors.Gray);
+            MessageInput.GotFocus += MessageInput_GotFocus;
+            MessageInput.LostFocus += MessageInput_LostFocus;
+        }
+
+        private void MessageInput_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (MessageInput.Text == "Type a message...")
+            {
+                MessageInput.Text = "";
+                MessageInput.Foreground = new SolidColorBrush(Colors.Black);
+            }
+        }
+
+        private void MessageInput_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(MessageInput.Text))
+            {
+                RestorePlaceholder();
+            }
+        }
+
+        private void RestorePlaceholder()
+        {
+            MessageInput.Text = "Type a message...";
+            MessageInput.Foreground = new SolidColorBrush(Colors.Gray);
+        }
+
+        private void ContactsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectedContact = ContactsList.SelectedItem as Contact;
+            if (SelectedContact != null)
+            {
+                // Update the chat messages for the selected contact
+                // This is just a placeholder, you should load the actual messages for the selected contact
+                Messages.Clear();
+                Messages.Add(new Message
+                {
+                    Sender = SelectedContact.Name,
+                    Content = "Hello!",
+                    Timestamp = DateTime.Now // Correctly assign DateTime value
+                });
+            }
+        }
+    }
+
+    public class Contact
+    {
+        public string Name { get; set; } = string.Empty; // Default to an empty string for safety
     }
 }
